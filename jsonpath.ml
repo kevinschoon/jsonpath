@@ -1,4 +1,4 @@
-open Core_kernel.Std
+open Core_kernel
 
 type component =
   | Wildcard
@@ -18,12 +18,12 @@ let search names json =
     | `Bool _ | `Float _ | `Int _ | `Null | `String _ ->
         []
     | `Assoc obj ->
-        List.concat_map obj (fun (key, value) ->
+        List.concat_map obj ~f:(fun (key, value) ->
           let found = collect name value in
           if key = name then value :: found else found
         )
     | `List l ->
-        List.concat_map l (collect name)
+        List.concat_map l ~f:(collect name)
   in
   List.fold names ~init:[] ~f:(fun results name ->
     List.append results (collect name json)
@@ -31,7 +31,7 @@ let search names json =
 
 let all_sub_values = function
   | `Bool _ | `Float _ | `Int _ | `Null | `String _ -> []
-  | `Assoc obj -> List.map obj snd
+  | `Assoc obj -> List.map obj ~f: snd
   | `List l -> l
 
 (* Perform a path operation on a single JSON value.
@@ -42,12 +42,13 @@ let eval_component operation json =
   | Wildcard ->
       all_sub_values json
   | Field names ->
-      List.map names (fun name -> J.member name json)
-  | Search names ->
-      search names json
+      List.map names ~f: (fun name -> J.member name json)
+  | Search _ ->
+      failwith "oops"
+      (*search names json*)
   | Index idxs ->
       let a = Array.of_list (J.to_list json) in
-      List.map idxs (fun i -> a.(i))
+      List.map idxs ~f: (fun i -> a.(i))
   | Slice (start, maybe_stop) ->
       let l = J.to_list json in
       let max_stop = List.length l in
@@ -61,7 +62,7 @@ let eval_component operation json =
    to each JSON value in the list of values returned so far,
    starting from the root. *)
 let eval json path =
-  let apply jsons oper = List.concat_map jsons (eval_component oper) in
+  let apply jsons oper = List.concat_map jsons ~f: (eval_component oper) in
   List.fold path ~init:[json] ~f:apply
 
 let print_component =
@@ -71,15 +72,15 @@ let print_component =
   | Wildcard ->
       "[*]"
   | Field names ->
-      "['" ^ comma (List.map names json_string) ^ "']"
+      "['" ^ comma (List.map names ~f: json_string) ^ "']"
   | Search names ->
-      "..['" ^ comma (List.map names json_string) ^ "']"
+      "..['" ^ comma (List.map names ~f: json_string) ^ "']"
   | Index idxs ->
-      "[" ^ comma (List.map idxs string_of_int) ^ "]"
+      "[" ^ comma (List.map idxs ~f: string_of_int) ^ "]"
   | Slice (start, None) ->
       "[" ^ string_of_int start ^ ":]"
   | Slice (start, Some stop) ->
       "[" ^ string_of_int start ^ ":" ^ string_of_int stop ^ "]"
 
 (* Pretty-print a path (using the more general bracket syntax) *)
-let to_string path = "$" ^ String.concat (List.map path print_component)
+let to_string path = "$" ^ String.concat (List.map path ~f: print_component)
