@@ -15,23 +15,19 @@ exception Syntax_error of string
    for all values associated with any key in names. *)
 let search names json =
   let rec collect name = function
-    | `Bool _ | `Float _ | `Int _ | `Null | `String _ ->
-        []
+    | `Bool _ | `Float _ | `Int _ | `Null | `String _ -> []
     | `Assoc obj ->
         List.concat_map obj ~f:(fun (key, value) ->
-          let found = collect name value in
-          if key = name then value :: found else found
-        )
-    | `List l ->
-        List.concat_map l ~f:(collect name)
+            let found = collect name value in
+            if key = name then value :: found else found)
+    | `List l -> List.concat_map l ~f:(collect name)
   in
   List.fold names ~init:[] ~f:(fun results name ->
-    List.append results (collect name json)
-  )
+      List.append results (collect name json))
 
 let all_sub_values = function
   | `Bool _ | `Float _ | `Int _ | `Null | `String _ -> []
-  | `Assoc obj -> List.map obj ~f: snd
+  | `Assoc obj -> List.map obj ~f:snd
   | `List l -> l
 
 (* Perform a path operation on a single JSON value.
@@ -39,48 +35,37 @@ let all_sub_values = function
 let eval_component operation json =
   let module J = Yojson.Basic.Util in
   match operation with
-  | Wildcard ->
-      all_sub_values json
-  | Field names ->
-      List.map names ~f: (fun name -> J.member name json)
-  | Search _ ->
-      failwith "oops"
-      (*search names json*)
+  | Wildcard -> all_sub_values json
+  | Field names -> List.map names ~f:(fun name -> J.member name json)
+  | Search _ -> failwith "oops" (*search names json*)
   | Index idxs ->
       let a = Array.of_list (J.to_list json) in
-      List.map idxs ~f: (fun i -> a.(i))
+      List.map idxs ~f:(fun i -> a.(i))
   | Slice (start, maybe_stop) ->
       let l = J.to_list json in
       let max_stop = List.length l in
       let stop = Option.value maybe_stop ~default:max_stop in
-      let clip i =
-        if i < 0 then 0 else if i > max_stop then max_stop else i
-      in
+      let clip i = if i < 0 then 0 else if i > max_stop then max_stop else i in
       List.slice l (clip start) (clip stop)
 
 (* Apply the components of the path
    to each JSON value in the list of values returned so far,
    starting from the root. *)
 let eval json path =
-  let apply jsons oper = List.concat_map jsons ~f: (eval_component oper) in
-  List.fold path ~init:[json] ~f:apply
+  let apply jsons oper = List.concat_map jsons ~f:(eval_component oper) in
+  List.fold path ~init:[ json ] ~f:apply
 
 let print_component =
   let comma = String.concat ~sep:"','" in
   let json_string s = Yojson.Basic.to_string (`String s) in
   function
-  | Wildcard ->
-      "[*]"
-  | Field names ->
-      "['" ^ comma (List.map names ~f: json_string) ^ "']"
-  | Search names ->
-      "..['" ^ comma (List.map names ~f: json_string) ^ "']"
-  | Index idxs ->
-      "[" ^ comma (List.map idxs ~f: string_of_int) ^ "]"
-  | Slice (start, None) ->
-      "[" ^ string_of_int start ^ ":]"
+  | Wildcard -> "[*]"
+  | Field names -> "['" ^ comma (List.map names ~f:json_string) ^ "']"
+  | Search names -> "..['" ^ comma (List.map names ~f:json_string) ^ "']"
+  | Index idxs -> "[" ^ comma (List.map idxs ~f:string_of_int) ^ "]"
+  | Slice (start, None) -> "[" ^ string_of_int start ^ ":]"
   | Slice (start, Some stop) ->
       "[" ^ string_of_int start ^ ":" ^ string_of_int stop ^ "]"
 
 (* Pretty-print a path (using the more general bracket syntax) *)
-let to_string path = "$" ^ String.concat (List.map path ~f: print_component)
+let to_string path = "$" ^ String.concat (List.map path ~f:print_component)
