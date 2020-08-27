@@ -1,5 +1,5 @@
 %{
-  open Jsonpath
+  open Main
   open Printf
 
   let syntax_error msg first last =
@@ -13,7 +13,7 @@
 %token DOLLAR DOT LBRAC RBRAC STAR COLON COMMA
 %token EOF
 
-%start <Jsonpath.path> path
+%start <Main.path> path
 
 %%
 

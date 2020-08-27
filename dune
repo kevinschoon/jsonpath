@@ -1,7 +1,0 @@
-(executable
- (name jsonpath)
- (libraries core_kernel yojson))
-
- (menhir
- (modules parser))
- (ocamllex lexer)

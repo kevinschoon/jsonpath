@@ -1,0 +1,6 @@
+(executable
+ (public_name jpath)
+ (name jpath)
+ (libraries jsonpath)
+ (modes exe)
+ (ocamlopt_flags))

@@ -9,7 +9,7 @@
 
   let syntax_error pos c =
     let msg = sprintf "Unexpected character '%c' at position %i" c pos in
-    raise (Jsonpath.Syntax_error msg)
+    raise (Main.Syntax_error msg)
 }
 
 let letter = ['A'-'Z' 'a'-'z']
