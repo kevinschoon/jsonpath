@@ -19,10 +19,10 @@ let search names json =
     | `Assoc obj ->
         List.concat_map obj ~f:(fun (key, value) ->
             let found = collect name value in
-            if key = name then value :: found else found)
+            if String.equal key name then value :: found else found)
     | `List l -> List.concat_map l ~f:(collect name)
   in
-  List.fold names ~init:[] ~f:(fun results name ->
+  List.fold names ~init:([] : Yojson.Basic.t list) ~f:(fun results name ->
       List.append results (collect name json))
 
 let all_sub_values = function
@@ -37,7 +37,7 @@ let eval_component operation json =
   match operation with
   | Wildcard -> all_sub_values json
   | Field names -> List.map names ~f:(fun name -> J.member name json)
-  | Search _ -> failwith "oops" (*search names json*)
+  | Search names -> (search names json) (*search names json*)
   | Index idxs ->
       let a = Array.of_list (J.to_list json) in
       List.map idxs ~f:(fun i -> a.(i))
