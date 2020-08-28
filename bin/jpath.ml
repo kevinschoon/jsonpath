@@ -12,9 +12,8 @@ let () =
       In_channel.iter_lines In_channel.stdin ~f:(fun line ->
           let json = Json.from_string line in
           let process results path_str =
-            let lexbuf = Lexing.from_string path_str in
-            let path = Jsonpath.Parser.path Jsonpath.Lexer.token lexbuf in
-            List.append results (Jsonpath.Main.eval json path)
+            List.append results (Jsonpath.select (Jsonpath.of_string path_str) json)
           in
           let results = List.fold path_args ~init:[] ~f:process in
           print_endline (Json.to_string (`List results)))
+

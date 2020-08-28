@@ -1,5 +1,5 @@
 %{
-  open Main
+  open Types
   open Printf
 
   let syntax_error msg first last =
@@ -13,7 +13,7 @@
 %token DOLLAR DOT LBRAC RBRAC STAR COLON COMMA
 %token EOF
 
-%start <Main.path> path
+%start <Types.t> path
 
 %%
 
