@@ -3,4 +3,4 @@
  (ocamllex lexer)
 (library
  (name jsonpath)
- (libraries core_kernel yojson))
+ (libraries core_kernel ezjsonm yojson))

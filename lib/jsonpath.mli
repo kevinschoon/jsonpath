@@ -12,8 +12,16 @@ val of_string : string -> t
 
 (* convert a string into a JSONPath *)
 
-val select : t -> Yojson.Basic.t -> Yojson.Basic.t list
+module Yojson : sig
+  val select : t -> Yojson.Basic.t -> Yojson.Basic.t list
+  (* Apply the components of the path
+     to each JSON value in the list of values returned so far,
+     starting from the root. *)
+end
 
-(* Apply the components of the path
-   to each JSON value in the list of values returned so far,
-   starting from the root. *)
+module Jsonm : sig
+  val select : t -> Ezjsonm.value -> Ezjsonm.value list
+  (* Apply the components of the path
+     to each JSON value in the list of values returned so far,
+     starting from the root. *)
+end
