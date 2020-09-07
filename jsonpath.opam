@@ -9,6 +9,7 @@ homepage: "https://github.com/kevinschoon/jsonpath"
 bug-reports: "https://github.com/kevinschoon/jsonpath/issues"
 depends: [
   "dune" {>= "2.7" & >= "2.7"}
+  "ezjsonm" {>= "1.2.0"}
   "yojson" {>= "1.7.0"}
   "odoc" {with-doc}
 ]
@@ -21,9 +22,5 @@ build: [
     name
     "-j"
     jobs
-    "@install"
-    "@runtest" {with-test}
-    "@doc" {with-doc}
   ]
 ]
-dev-repo: "git+https://github.com/kevinschoon/jsonpath.git"
